@@ -85,23 +85,39 @@
                 { level: 5, emoji: '😊', label: 'Excellent' }
             ];
 
-            const handleAIResponse = (input) => {
+            const handleAIResponse = async (input) => {
                 const newHistory = [...chatHistory, { type: 'user', text: input }];
-                
-                let response = '';
-                const lowerInput = input.toLowerCase();
-                
-                if (lowerInput.includes('explain') || lowerInput.includes('what is') || lowerInput.includes('how does')) {
-                    response = `Let me help you understand that! ${input.split(' ').slice(0, 3).join(' ')} is a concept that involves several key points:\n\n1. First, consider the fundamental principle\n2. Then, look at how it applies in practice\n3. Finally, remember the exceptions or special cases\n\nWould you like me to break this down further or provide examples?`;
-                } else if (lowerInput.includes('stress') || lowerInput.includes('anxious') || lowerInput.includes('overwhelmed')) {
-                    response = `I hear you, and it's completely normal to feel this way. Here are some quick tips:\n\n🌟 Take 3 deep breaths right now\n🌟 Break your task into smaller, manageable chunks\n🌟 Remember: Progress, not perfection\n🌟 Consider taking a 5-minute walk or stretch\n\nYou're doing better than you think. Would you like to talk more about what's overwhelming you?`;
-                } else if (lowerInput.includes('tired') || lowerInput.includes('burnout')) {
-                    response = `Burnout is real, and recognizing it is the first step. Consider:\n\n✨ Taking a proper break (15-30 minutes)\n✨ Switching to a lighter task\n✨ Getting some fresh air or light exercise\n✨ Remember why you started this journey\n\nYour mental health matters more than any deadline. What would help you feel better right now?`;
-                } else {
-                    response = `Thanks for sharing! I'm here to help you learn and support your wellbeing. You can ask me to:\n\n📚 Explain concepts in simple terms\n📝 Generate quizzes or flashcards from your notes\n💚 Talk about stress or anxiety\n🎯 Help you stay focused and motivated\n\nWhat would you like to explore?`;
+                setHistory(newHistory);
+
+                // Try server-backed Gemini first
+                let responseText = '';
+                try {
+                    const res = await fetch('/api/ask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt: input })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        responseText = data.reply || '';
+                    } else {
+                        throw new Error('Server returned ' + res.status);
+                    }
+                } catch (e) {
+                    // Fallback: local heuristic reply if server or key is unavailable
+                    const lowerInput = input.toLowerCase();
+                    if (lowerInput.includes('explain') || lowerInput.includes('what is') || lowerInput.includes('how does')) {
+                        responseText = `Let me help you understand that! ${input.split(' ').slice(0, 3).join(' ')} is a concept that involves several key points:\n\n1. First, consider the fundamental principle\n2. Then, look at how it applies in practice\n3. Finally, remember the exceptions or special cases\n\nWould you like me to break this down further or provide examples?`;
+                    } else if (lowerInput.includes('stress') || lowerInput.includes('anxious') || lowerInput.includes('overwhelmed')) {
+                        responseText = `I hear you, and it's completely normal to feel this way. Here are some quick tips:\n\n🌟 Take 3 deep breaths right now\n🌟 Break your task into smaller, manageable chunks\n🌟 Remember: Progress, not perfection\n🌟 Consider taking a 5-minute walk or stretch\n\nYou're doing better than you think. Would you like to talk more about what's overwhelming you?`;
+                    } else if (lowerInput.includes('tired') || lowerInput.includes('burnout')) {
+                        responseText = `Burnout is real, and recognizing it is the first step. Consider:\n\n✨ Taking a proper break (15-30 minutes)\n✨ Switching to a lighter task\n✨ Getting some fresh air or light exercise\n✨ Remember why you started this journey\n\nYour mental health matters more than any deadline. What would help you feel better right now?`;
+                    } else {
+                        responseText = `Thanks for sharing! I'm here to help you learn and support your wellbeing. You can ask me to:\n\n📚 Explain concepts in simple terms\n📝 Generate quizzes or flashcards from your notes\n💚 Talk about stress or anxiety\n🎯 Help you stay focused and motivated\n\nWhat would you like to explore?`;
+                    }
                 }
-                
-                setHistory([...newHistory, { type: 'ai', text: response }]);
+
+                setHistory([...newHistory, { type: 'ai', text: responseText }]);
                 setUserInput('');
             };
 
