@@ -1,0 +1,13 @@
+# Python bytecode and temporary files
+__pycache__
+*.pyc
+
+# Environment files (where secret keys might be stored locally)
+.env
+
+# NLTK downloads
+vader_lexicon
+
+# Folders created by deployment/development tools
+/venv
+.env
