@@ -19,6 +19,10 @@
     "url": "https://github.com/MadhuriN-369/Study-Well-Companion/issues"
   },
   "homepage": "https://github.com/MadhuriN-369/Study-Well-Companion#readme",
+  "engines": {
+    "node": ">=18 <=22",
+    "npm": ">=9"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
